@@ -83,3 +83,77 @@ function addInfo() {
             }
         });
 }
+
+function addDepartment() {
+    inquirer
+        .prompt({
+            name: "addDepart",
+            type: "input",
+            message: "What is the name of the department you would like to add?"
+        })
+        .then(function (answer) {
+            connection.query(
+                "INSERT INTO department set ?", {
+                title: answer.addDepart
+            },
+                function (err) {
+                    if (err) throw err;
+                    start();
+                }
+            );
+        });
+};
+
+function addRole() {
+    connection.query("SELECT * FROM department", function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: "roleTitle",
+                    type: "input",
+                    message: "What is the title of the role you want to add?"
+                },
+                {
+                    name: "roleSalary",
+                    type: "number",
+                    message: "What is the salary for this role?"
+                },
+                {
+                    name: "choice",
+                    type: "rawlist",
+                    choices: function () {
+                        var choiceArr = [];
+
+                        for (var i = 0; i < results.length; i++) {
+                            choiceArr.push(results[i].title);
+                        }
+                        return choiceArr;
+                    },
+                    message: "What is the department for this role?"
+                },
+
+            ])
+            .then(function (answer) {
+                var chosenItem;
+                for (var i = 0; i < results.length; i++) {
+                    if (results[i].title === answer.choice) {
+                        chosenItem = results[i];
+                    }
+                }
+                connection.query(
+                    "INSERT INTO role SET ?",
+                    {
+                        title: answer.roleTitle,
+                        salary: answer.roleSalary,
+                        department_id: chosenItem.id
+                    },
+                    function (err) {
+                        if (err) throw err;
+                        start();
+                    }
+                );
+            });
+    });
+
+};
