@@ -157,3 +157,173 @@ function addRole() {
     });
 
 };
+
+function addEmployee() {
+    connection.query("SELECT * FROM role", function (err, results) {
+        if (err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: "firstName",
+                    type: "input",
+                    message: "What is the employee's first name?"
+                },
+                {
+                    name: "lastName",
+                    type: "input",
+                    message: "What is the employee's last name?"
+                },
+                {
+                    name: "choice",
+                    type: "rawlist",
+                    choices: function () {
+                        var choiceArr = [];
+                        for (var i = 0; i < results.length; i++) {
+                            choiceArr.push(results[i].title);
+                        }
+                        return choiceArr;
+                    },
+                    message: "What is the employee's role ID?"
+                },
+                {
+                    name: "managerID",
+                    type: "number",
+                    message: "What is the employee's manager ID?"
+                }
+            ])
+            .then(function (answer) {
+                var chosenItem;
+                for (var i = 0; i < results.length; i++) {
+                    if (results[i].title === answer.choice) {
+                        chosenItem = results[i];
+                    }
+                }
+                connection.query(
+                    "INSERT INTO role SET ?",
+                    {
+                        first_name: answer.firstName,
+                        last_name: answer.lastName,
+                        role_id: chosenItem.id,
+                        manager_id: answer.managerID
+                    },
+                    function (err) {
+                        if (err) throw err;
+                        start();
+                    }
+                );
+            });
+    })
+};
+
+function viewInfo() {
+    inquirer
+        .prompt({
+            name: "viewAllInfo",
+            type: "list",
+            message: "Would you like to view Departments, roles, or employees?",
+            choices: [
+                "DEPARTMENTS",
+                "ROLES",
+                "EMPLOYEES",
+                "EXIT"
+            ]
+        })
+        .then(function (answer) {
+            if (answer.viewAllInfo === "DEPARTMENTS") {
+                viewDepartInfo();
+            }
+            else if (answer.viewAllInfo === "ROLES") {
+                viewRoleInfo();
+            }
+            else if (answer.viewAllInfo === "EMPLOYEES") {
+                viewEmployeeInfo();
+            }
+            else {
+                start();
+            }
+        });
+}
+
+function viewDepartInfo() {
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log(" " + res[i].id + " - " + res[i].title);
+
+        }
+        start();
+    });
+};
+
+function viewRoleInfo() {
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("Role id: " + res[i].id + " " + "Title " + res[i].title + " " + "Salary " + res[i].salary + " " + "Department ID " + res[i].department_id);
+
+        }
+        start();
+    });
+};
+
+function viewEmployeetInfo() {
+    connection.query("SELECT * FROM employee", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log(res[i].id + " - " + res[i].first_name + res[i].last_name + " -- Role ID: " + res[i].role_id + " " + " -- Manager ID: " + res[i].manager_id);
+
+        }
+        start();
+    });
+};
+
+function updateInfo() {
+    connection.query("SELECT * FROM employee", function (err, res) {
+        if (err) throw err;
+        inquirer
+            .prompt([
+                {
+                    name: "choice",
+                    type: "rawlist",
+                    choices: function () {
+                        var choiceArr = [];
+                        for (var i = 0; i < results.length; i++) {
+                            choiceArr.push(results[i].first_name + " " + results[i].last_name);
+                        }
+                        return choiceArr;
+                    },
+                    message: "Which employee would you like to update?"
+                },
+                {
+                    name: "newRole",
+                    type: "list",
+                    message: "What would you like to update their role to? [1]Engineer [2]Sales [3]Legal [4]Finance",
+                    choices: [1, 2, 3, 4]
+                }
+
+            ])
+            .then(function (answer) {
+                var chosenItem;
+                for (var i = 0; i < results.length; i++) {
+                    if (results[i].first_name + " " + results[i].last_name === answer.choice) {
+                        chosenItem = results[i];
+                    }
+                }
+                connection.query(
+                    "UPDATE employee SET ? WHERE ?",
+                    [
+                        {
+                            role_id: answer.newRole
+                        },
+                        {
+                            id: chosenItem.id
+                        }
+                    ],
+                    function (err) {
+                        if (err) throw err;
+                        start();
+                    }
+                )
+            });
+    });
+};
