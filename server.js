@@ -115,7 +115,7 @@ function addDepartment() {
 function addRole() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
-
+        console.log(res)
         inquirer
             .prompt([
                 {
@@ -135,9 +135,10 @@ function addRole() {
                     choices: function () {
                         var depArr = [];
 
-                        for (var i = 0; i < res.length; i++)
-                            depArr.push(res[i].department);
+                        for (var i = 0; i < res.length; i++) {
+                            depArr.push(res[i].name);
 
+                        }
                         return depArr;
                     }
                 }
